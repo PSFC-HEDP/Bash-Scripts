@@ -1,0 +1,56 @@
+#!/bin/bash
+
+npDefault=45
+
+commandStart="mpirun --oversubscribe -x PATH -x DATAPATH "
+commandEnd="mcnp6.mpi "
+
+for var in "$@"
+do
+    if [ "$npSet" = true ] ; then
+        npSet=$var
+    fi    
+    
+    if [ "$mpiVar" = true ] ; then
+        commandStart=$commandStart$var" "
+
+    elif [ "$var" == "-np" ] ; then
+        commandStart=$commandStart$var" "
+        mpiVar=true
+        npSet=true
+        continue
+        
+    elif [ "$var" == "-H" ] ; then
+        commandStart=$commandStart$var" "
+        mpiVar=true
+        hSet=true
+        continue
+
+    else
+	    commandEnd=$commandEnd$var" "
+
+    fi
+done
+
+if [ -z $npSet ] ; then
+    commandStart=$commandStart"-np "$npDefault" "
+
+elif [ -z $hSet ] ; then
+    
+    if [ $npSet -gt 48 ] && [ $npSet -lt 97 ] ; then
+        commandStart=$commandStart"-H ben-local,chewie-local "
+        
+    elif [ $npSet -gt 96 ] && [ $npSet -lt 145 ] ; then
+        commandStart=$commandStart"-H ben-local,chewie-local,luke-local "
+        
+    elif [ $npSet -gt 144 ] ; then
+        commandStart=$commandStart"-H ben-local,chewie-local,luke-local,han-local "
+    
+    fi
+fi
+
+command=$commandStart$commandEnd
+
+echo $command
+eval $command &
+
