@@ -48,7 +48,7 @@ IFS=$'\n' users=($(sort <<< "${users[*]}")); unset IFS
 topOutput=$(top -bn1)
 
 # Get the number of CPUs
-nCPUs=$(nproc)
+ben_nCPUs=$(nproc)
 
 
 # Get the usage of each user
@@ -56,7 +56,7 @@ for i in ${!users[@]}
 do
 
     temp=($(echo "$topOutput" | awk -v u=${users[$i]} \
-        '$2 ~ u && $12 != "top" {count++} END {print count}'))
+        '$2 ~ u && $12 != "top" && $9 > 50 {count++} END {print count}'))
     if [ -z "$temp" ]
     then
         benProcCount[$i]=0
@@ -64,7 +64,7 @@ do
         benProcCount[$i]=$temp
     fi
 
-    temp=($(echo "$topOutput" | awk -v u=${users[$i]} -v N=$nCPUs \
+    temp=($(echo "$topOutput" | awk -v u=${users[$i]} -v N=$ben_nCPUs \
         '$2 ~ u && $12 != "top" {sum += $9} END {print sum/N}'))
     if [ -z "$temp" ]
     then
@@ -78,8 +78,14 @@ do
     
     procTotal=$(echo | awk -v a=$procTotal -v b=${benProcCount[$i]} '{print a+b}')
     cpuTotal=$(echo | awk -v a=$cpuTotal -v b=${benCpuUsage[$i]} '{print a+(b/4)}')
-  
+      
 done
+
+benProcAvail=$(echo | awk -v a=$benProcTotal -v b=$ben_nCPUs '{print b-a}')
+benCpuAvail=$(echo | awk -v a=$benCpuTotal '{print 100.0-a}')
+
+procAvail=$(echo | awk -v a=$procAvail -v b=$benProcAvail '{print a+b}')
+cpuAvail=$(echo | awk -v a=$cpuAvail -v b=$benCpuAvail '{print a+(b/4)}')
 
 
 
@@ -94,7 +100,7 @@ then
     topOutput=$(ssh chewie-local top -bn1)
 
     # Get the number of CPUs
-    nCPUs=$(ssh chewie-local nproc)
+    chewie_nCPUs=$(ssh chewie-local nproc)
 
 
     # Get the usage of each user
@@ -102,7 +108,7 @@ then
     do
 
         temp=($(echo "$topOutput" | awk -v u=${users[$i]} \
-            '$2 ~ u && $12 != "top" {count++} END {print count}'))
+            '$2 ~ u && $12 != "top" && $9 > 50 {count++} END {print count}'))
         if [ -z "$temp" ]
         then
             chewieProcCount[$i]=0
@@ -110,7 +116,7 @@ then
             chewieProcCount[$i]=$temp
         fi
 
-        temp=($(echo "$topOutput" | awk -v u=${users[$i]} -v N=$nCPUs \
+        temp=($(echo "$topOutput" | awk -v u=${users[$i]} -v N=$chewie_nCPUs \
             '$2 ~ u && $12 != "top" {sum += $9} END {print sum/N}'))
         if [ -z "$temp" ]
         then
@@ -126,6 +132,13 @@ then
         cpuTotal=$(echo | awk -v a=$cpuTotal -v b=${chewieCpuUsage[$i]} '{print a+(b/4)}')
       
     done
+    
+    chewieProcAvail=$(echo | awk -v a=$chewieProcTotal -v b=$chewie_nCPUs '{print b-a}')
+    chewieCpuAvail=$(echo | awk -v a=$chewieCpuTotal '{print 100.0-a}')
+
+    procAvail=$(echo | awk -v a=$procAvail -v b=$chewieProcAvail '{print a+b}')
+    cpuAvail=$(echo | awk -v a=$cpuAvail -v b=$chewieCpuAvail '{print a+(b/4)}')
+    
 fi
 
 
@@ -140,7 +153,7 @@ then
     topOutput=$(ssh luke-local top -bn1)
 
     # Get the number of CPUs
-    nCPUs=$(ssh luke-local nproc)
+    luke_nCPUs=$(ssh luke-local nproc)
 
 
     # Get the usage of each user
@@ -148,7 +161,7 @@ then
     do
 
         temp=($(echo "$topOutput" | awk -v u=${users[$i]} \
-            '$2 ~ u && $12 != "top" {count++} END {print count}'))
+            '$2 ~ u && $12 != "top" && $9 > 50 {count++} END {print count}'))
         if [ -z "$temp" ]
         then
             lukeProcCount[$i]=0
@@ -156,7 +169,7 @@ then
             lukeProcCount[$i]=$temp
         fi
 
-        temp=($(echo "$topOutput" | awk -v u=${users[$i]} -v N=$nCPUs \
+        temp=($(echo "$topOutput" | awk -v u=${users[$i]} -v N=$luke_nCPUs \
             '$2 ~ u && $12 != "top" {sum += $9} END {print sum/N}'))
         if [ -z "$temp" ]
         then
@@ -167,11 +180,18 @@ then
         
         lukeProcTotal=$(echo | awk -v a=$lukeProcTotal -v b=${lukeProcCount[$i]} '{print a+b}')
         lukeCpuTotal=$(echo | awk -v a=$lukeCpuTotal -v b=${lukeCpuUsage[$i]} '{print a+b}')
-
+        
         procTotal=$(echo | awk -v a=$procTotal -v b=${lukeProcCount[$i]} '{print a+b}')
         cpuTotal=$(echo | awk -v a=$cpuTotal -v b=${lukeCpuUsage[$i]} '{print a+(b/4)}')
       
     done
+    
+    lukeProcAvail=$(echo | awk -v a=$lukeProcTotal -v b=$luke_nCPUs '{print b-a}')
+    lukeCpuAvail=$(echo | awk -v a=$lukeCpuTotal '{print 100.0-a}')
+
+    procAvail=$(echo | awk -v a=$procAvail -v b=$lukeProcAvail '{print a+b}')
+    cpuAvail=$(echo | awk -v a=$cpuAvail -v b=$lukeCpuAvail '{print a+(b/4)}')
+    
 fi
 
 
@@ -186,7 +206,7 @@ then
     topOutput=$(ssh han-local top -bn1)
 
     # Get the number of CPUs
-    nCPUs=$(ssh han-local nproc)
+    han_nCPUs=$(ssh han-local nproc)
 
 
     # Get the usage of each user
@@ -194,7 +214,7 @@ then
     do
 
         temp=($(echo "$topOutput" | awk -v u=${users[$i]} \
-            '$2 ~ u && $12 != "top" {count++} END {print count}'))
+            '$2 ~ u && $12 != "top" && $9 > 50 {count++} END {print count}'))
         if [ -z "$temp" ]
         then
             hanProcCount[$i]=0
@@ -202,7 +222,7 @@ then
             hanProcCount[$i]=$temp
         fi
 
-        temp=($(echo "$topOutput" | awk -v u=${users[$i]} -v N=$nCPUs \
+        temp=($(echo "$topOutput" | awk -v u=${users[$i]} -v N=$han_nCPUs \
             '$2 ~ u && $12 != "top" {sum += $9} END {print sum/N}'))
         if [ -z "$temp" ]
         then
@@ -213,34 +233,44 @@ then
         
         hanProcTotal=$(echo | awk -v a=$hanProcTotal -v b=${hanProcCount[$i]} '{print a+b}')
         hanCpuTotal=$(echo | awk -v a=$hanCpuTotal -v b=${hanCpuUsage[$i]} '{print a+b}')
-
+        
         procTotal=$(echo | awk -v a=$procTotal -v b=${hanProcCount[$i]} '{print a+b}')
         cpuTotal=$(echo | awk -v a=$cpuTotal -v b=${hanCpuUsage[$i]} '{print a+(b/4)}')
       
     done
+    
+    hanProcAvail=$(echo | awk -v a=$hanProcTotal -v b=$han_nCPUs '{print b-a}')
+    hanCpuAvail=$(echo | awk -v a=$hanCpuTotal '{print 100.0-a}')
+
+    procAvail=$(echo | awk -v a=$procAvail -v b=$hanProcAvail '{print a+b}')
+    cpuAvail=$(echo | awk -v a=$cpuAvail -v b=$hanCpuAvail '{print a+(b/4)}')
+    
 fi
+
 
 
 # Print stuff
 clear
-printf "\n%28s%16s%28s\n" " " "Usage Statistics" " "
-printf "%12s %12s %12s %12s %12s\n" "User" "Ben CPUs" "Chewie CPUs" "Luke CPUs" "Han CPUs" 
+printf "\n%28s%16s%28s\n\n" " " "Usage Statistics" " "
+printf "%12s %12s %12s %12s %12s\n\n" "User" "Ben CPUs" "Chewie CPUs" "Luke CPUs" "Han CPUs" 
 
 for i in ${!users[@]}
 do
-	printf "%12s %6.1f (%3d) %6.1f (%3d) %6.1f (%3d) %6.1f (%3d) \n" ${users[$i]} \
+	printf "%11s: %6.1f (%3d) %6.1f (%3d) %6.1f (%3d) %6.1f (%3d)\n" ${users[$i]} \
         ${benCpuUsage[$i]} ${benProcCount[$i]} \
         ${chewieCpuUsage[$i]} ${chewieProcCount[$i]} \
         ${lukeCpuUsage[$i]} ${lukeProcCount[$i]} \
         ${hanCpuUsage[$i]} ${hanProcCount[$i]}
 done
 
-printf "%12s %6.1f (%3d) %6.1f (%3d) %6.1f (%3d) %6.1f (%3d) %6.1f (%3d)\n\n" "Totals:" \
-        $benCpuTotal $benProcTotal \
-        $chewieCpuTotal $chewieProcTotal \
-        $lukeCpuTotal $lukeProcTotal \
-        $hanCpuTotal $hanProcTotal \
-        $cpuTotal $procTotal 
+printf "\n%12s %6.1f (%3d) %6.1f (%3d) %6.1f (%3d) %6.1f (%3d)\n" "Available:" \
+        $benCpuAvail $benProcAvail \
+        $chewieCpuAvail $chewieProcAvail \
+        $lukeCpuAvail $lukeProcAvail \
+        $hanCpuAvail $hanProcAvail
+        
+printf "\n%12s %6.1f (%3d)\n\n" \
+        "Total Avail:" $cpuAvail $procAvail 
 
 
 
