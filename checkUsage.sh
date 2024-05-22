@@ -250,13 +250,13 @@ fi
 
 
 # Print stuff
-clear
+#clear
 printf "\n%28s%16s%28s\n\n" " " "Usage Statistics" " "
-printf "%12s %12s %12s %12s %12s\n\n" "User" "Ben CPUs" "Chewie CPUs" "Luke CPUs" "Han CPUs" 
+printf "%15s %12s %12s %12s %12s\n\n" "User" "Ben CPUs" "Chewie CPUs" "Luke CPUs" "Han CPUs" 
 
 for i in ${!users[@]}
 do
-	printf "%11s: %6.1f (%3d) %6.1f (%3d) %6.1f (%3d) %6.1f (%3d)\n" ${users[$i]} \
+	printf "%14s: %6.1f (%3d) %6.1f (%3d) %6.1f (%3d) %6.1f (%3d)\n" ${users[$i]} \
         ${benCpuUsage[$i]} ${benProcCount[$i]} \
         ${chewieCpuUsage[$i]} ${chewieProcCount[$i]} \
         ${lukeCpuUsage[$i]} ${lukeProcCount[$i]} \
